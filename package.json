@@ -1,0 +1,23 @@
+{
+  "name": "qolhelper-bot",
+  "version": "1.0.0",
+  "description": "Discord bot for managing QOL Hub client listings",
+  "main": "src/index.js",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js",
+    "deploy": "node src/deploy-commands.js",
+    "get-ids": "node src/utils/getIds.js",
+    "validate": "node src/utils/validateConfig.js"
+  },
+  "keywords": ["discord", "bot", "qolhub", "minecraft"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "discord.js": "^14.14.1",
+    "dotenv": "^16.3.1"
+  },
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
