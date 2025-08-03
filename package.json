@@ -1,7 +1,7 @@
 {
   "name": "qolhelper-bot",
   "version": "1.0.0",
-  "description": "Discord bot for managing QOL Hub client listings",
+  "description": "Discord bot for managing QOL Hub client listings and giveaways",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",

@@ -43,6 +43,20 @@ function validateConfig() {
         warnings.push('LEGIT_FORUM_1215_CHANNEL_ID is not set - /listlegit command for 1.21.5 will not work');
     }
 
+    // Check additional forum channels
+    if (!config.channels.coinShopForum) {
+        warnings.push('COIN_SHOP_FORUM_CHANNEL_ID is not set - /listcoinshop command will not work');
+    }
+
+    if (!config.channels.otherForum) {
+        warnings.push('OTHER_FORUM_CHANNEL_ID is not set - /listother command will not work');
+    }
+
+    // Check role configuration
+    if (!config.roles.clientListing) {
+        warnings.push('CLIENT_LISTING_ROLE_ID is not set - anyone can use listing commands');
+    }
+
     // Validate ID formats (Discord IDs are typically 17-19 digits)
     const idPattern = /^\d{17,19}$/;
 
@@ -54,21 +68,27 @@ function validateConfig() {
         errors.push('GUILD_ID appears to be invalid (should be 17-19 digits)');
     }
 
-    // Validate version-specific channel IDs
-    const channelValidations = [
+    // Validate channel IDs and role IDs
+    const validations = [
+        // Version-specific channels
         { id: config.channels.cheatForum189, name: 'CHEAT_FORUM_189_CHANNEL_ID' },
         { id: config.channels.cheatForum1215, name: 'CHEAT_FORUM_1215_CHANNEL_ID' },
         { id: config.channels.macroForum189, name: 'MACRO_FORUM_189_CHANNEL_ID' },
         { id: config.channels.macroForum1215, name: 'MACRO_FORUM_1215_CHANNEL_ID' },
         { id: config.channels.legitForum189, name: 'LEGIT_FORUM_189_CHANNEL_ID' },
         { id: config.channels.legitForum1215, name: 'LEGIT_FORUM_1215_CHANNEL_ID' },
+        // Additional channels
+        { id: config.channels.coinShopForum, name: 'COIN_SHOP_FORUM_CHANNEL_ID' },
+        { id: config.channels.otherForum, name: 'OTHER_FORUM_CHANNEL_ID' },
         // Legacy channels
         { id: config.channels.cheatForum, name: 'CHEAT_FORUM_CHANNEL_ID' },
         { id: config.channels.macroForum, name: 'MACRO_FORUM_CHANNEL_ID' },
-        { id: config.channels.legitForum, name: 'LEGIT_FORUM_CHANNEL_ID' }
+        { id: config.channels.legitForum, name: 'LEGIT_FORUM_CHANNEL_ID' },
+        // Roles
+        { id: config.roles.clientListing, name: 'CLIENT_LISTING_ROLE_ID' }
     ];
 
-    channelValidations.forEach(({ id, name }) => {
+    validations.forEach(({ id, name }) => {
         if (id && !idPattern.test(id)) {
             errors.push(`${name} appears to be invalid (should be 17-19 digits)`);
         }

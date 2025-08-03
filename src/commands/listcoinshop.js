@@ -3,72 +3,73 @@ const { hasClientListingPermission, getClientListingRoleName } = require('../uti
 
 module.exports = {
     data: new SlashCommandBuilder()
-        .setName('listcheat')
-        .setDescription('Submit a cheat client to be listed in the forum'),
-
+        .setName('listcoinshop')
+        .setDescription('Submit a coin shop to be listed in the forum'),
+    
     async execute(interaction) {
         // Check if user has the required role
         if (!hasClientListingPermission(interaction.member)) {
             const roleName = getClientListingRoleName(interaction.guild);
-            const roleMessage = roleName
-                ? `You need the **${roleName}** role to list clients.`
-                : 'You do not have permission to list clients.';
-
+            const roleMessage = roleName 
+                ? `You need the **${roleName}** role to list coin shops.`
+                : 'You do not have permission to list coin shops.';
+            
             return await interaction.reply({
                 content: `❌ ${roleMessage}`,
                 ephemeral: true
             });
         }
+
         // Create the modal
         const modal = new ModalBuilder()
-            .setCustomId('client_form_cheat')
-            .setTitle('Submit Cheat Client');
+            .setCustomId('coinshop_form')
+            .setTitle('Submit Coin Shop');
 
         // Create text input components
         const nameInput = new TextInputBuilder()
-            .setCustomId('client_name')
-            .setLabel('Client Name')
+            .setCustomId('shop_name')
+            .setLabel('Shop Name')
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder('Enter the name of the cheat client')
+            .setPlaceholder('Enter the name of the coin shop')
             .setRequired(true)
             .setMaxLength(100);
 
-        const versionInput = new TextInputBuilder()
-            .setCustomId('client_version')
-            .setLabel('Minecraft Version')
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder('1.8.9 or 1.21.5')
+        const descriptionInput = new TextInputBuilder()
+            .setCustomId('shop_description')
+            .setLabel('Description')
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('Describe what the shop offers, payment methods, etc.')
             .setRequired(true)
-            .setMaxLength(10);
+            .setMaxLength(1000);
 
-        const freeInput = new TextInputBuilder()
-            .setCustomId('client_free')
-            .setLabel('Is it Free? (yes/no)')
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder('yes or no')
+        const pricesInput = new TextInputBuilder()
+            .setCustomId('shop_prices')
+            .setLabel('Pricing Information')
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('List your prices (e.g., 1000 coins = $5, 5000 coins = $20)')
             .setRequired(true)
-            .setMaxLength(3);
+            .setMaxLength(500);
 
         const discordInput = new TextInputBuilder()
-            .setCustomId('client_discord')
-            .setLabel('Discord Server Invite')
+            .setCustomId('shop_discord')
+            .setLabel('Discord Contact')
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder('https://discord.gg/example or discord.gg/example')
-            .setRequired(false)
+            .setPlaceholder('Discord username or server invite')
+            .setRequired(true)
             .setMaxLength(200);
 
         const linkInput = new TextInputBuilder()
-            .setCustomId('client_link')
-            .setLabel('Website/GitHub Link')
+            .setCustomId('shop_link')
+            .setLabel('Website/Payment Link (Optional)')
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder('https://github.com/example or https://website.com')
+            .setPlaceholder('https://website.com or payment platform link')
             .setRequired(false)
             .setMaxLength(200);
 
         // Create action rows and add inputs
         const firstActionRow = new ActionRowBuilder().addComponents(nameInput);
-        const secondActionRow = new ActionRowBuilder().addComponents(versionInput);
-        const thirdActionRow = new ActionRowBuilder().addComponents(freeInput);
+        const secondActionRow = new ActionRowBuilder().addComponents(descriptionInput);
+        const thirdActionRow = new ActionRowBuilder().addComponents(pricesInput);
         const fourthActionRow = new ActionRowBuilder().addComponents(discordInput);
         const fifthActionRow = new ActionRowBuilder().addComponents(linkInput);
 

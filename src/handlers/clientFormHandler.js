@@ -58,9 +58,15 @@ function formatWebsiteLink(link) {
  * @returns {string|null}
  */
 function getForumChannelId(clientType, version) {
-    // Normalize version string for channel lookup
-    const versionKey = version === '1.8.9' ? '189' : '1215';
+    // Handle non-versioned types
+    if (clientType === 'coinshop') {
+        return config.channels.coinShopForum;
+    }
+    if (clientType === 'other') {
+        return config.channels.otherForum;
+    }
 
+    // Handle versioned client types
     switch (clientType) {
         case 'cheat':
             return version === '1.8.9' ? config.channels.cheatForum189 : config.channels.cheatForum1215;
@@ -121,6 +127,110 @@ async function createForumPost(client, channelId, clientData) {
     if (clientData.websiteLink) {
         embed.addFields({ name: 'Website/GitHub', value: clientData.websiteLink, inline: false });
     }
+
+    // Create the forum post
+    const thread = await channel.threads.create({
+        name: threadName,
+        message: {
+            content: messageContent,
+            embeds: [embed]
+        }
+    });
+
+    return thread;
+}
+
+/**
+ * Creates a forum post for a coin shop
+ * @param {import('discord.js').Client} client
+ * @param {string} channelId
+ * @param {Object} shopData
+ * @returns {Promise<import('discord.js').ThreadChannel>}
+ */
+async function createCoinShopForumPost(client, channelId, shopData) {
+    const channel = await client.channels.fetch(channelId);
+
+    if (!channel || !channel.isThreadOnly()) {
+        throw new Error('Invalid forum channel');
+    }
+
+    // Create the thread title
+    const threadName = `💰 ${shopData.name}`;
+
+    // Create the initial message content
+    let messageContent = `**${shopData.name}** - Coin Shop\n\n`;
+    messageContent += `📝 **Description:** ${shopData.description}\n\n`;
+    messageContent += `💵 **Pricing:**\n${shopData.prices}\n\n`;
+    messageContent += `💬 **Contact:** ${shopData.discord}\n`;
+
+    if (shopData.link) {
+        messageContent += `🌐 **Website/Payment:** ${shopData.link}\n`;
+    }
+
+    // Create an embed for better formatting
+    const embed = new EmbedBuilder()
+        .setTitle(`💰 ${shopData.name}`)
+        .setColor(0xFFD700) // Gold color for coin shops
+        .setDescription(shopData.description)
+        .addFields(
+            { name: '💵 Pricing', value: shopData.prices, inline: false },
+            { name: '💬 Contact', value: shopData.discord, inline: true },
+            { name: '📋 Type', value: 'Coin Shop', inline: true }
+        )
+        .setTimestamp()
+        .setFooter({ text: `Submitted by ${shopData.submittedBy}` });
+
+    if (shopData.link) {
+        embed.addFields({ name: '🌐 Website/Payment', value: shopData.link, inline: false });
+    }
+
+    // Create the forum post
+    const thread = await channel.threads.create({
+        name: threadName,
+        message: {
+            content: messageContent,
+            embeds: [embed]
+        }
+    });
+
+    return thread;
+}
+
+/**
+ * Creates a forum post for other items
+ * @param {import('discord.js').Client} client
+ * @param {string} channelId
+ * @param {Object} itemData
+ * @returns {Promise<import('discord.js').ThreadChannel>}
+ */
+async function createOtherForumPost(client, channelId, itemData) {
+    const channel = await client.channels.fetch(channelId);
+
+    if (!channel || !channel.isThreadOnly()) {
+        throw new Error('Invalid forum channel');
+    }
+
+    // Create the thread title
+    const threadName = `${itemData.category} - ${itemData.name}`;
+
+    // Create the initial message content
+    let messageContent = `**${itemData.name}** - ${itemData.category}\n\n`;
+    messageContent += `📝 **Description:** ${itemData.description}\n\n`;
+    messageContent += `💰 **Price:** ${itemData.price}\n\n`;
+    messageContent += `📞 **Contact:** ${itemData.contact}\n`;
+
+    // Create an embed for better formatting
+    const embed = new EmbedBuilder()
+        .setTitle(`${itemData.name}`)
+        .setColor(0x9932CC) // Purple color for other items
+        .setDescription(itemData.description)
+        .addFields(
+            { name: '📋 Category', value: itemData.category, inline: true },
+            { name: '💰 Price', value: itemData.price, inline: true },
+            { name: '📞 Contact', value: itemData.contact, inline: false }
+        )
+        .setTimestamp()
+        .setFooter({ text: `Submitted by ${itemData.submittedBy}` });
 
     // Create the forum post
     const thread = await channel.threads.create({
@@ -214,6 +324,152 @@ async function handleClientFormSubmission(interaction) {
     }
 }
 
+/**
+ * Handles coin shop form submission from modal
+ * @param {import('discord.js').ModalSubmitInteraction} interaction
+ */
+async function handleCoinShopFormSubmission(interaction) {
+    await interaction.deferReply({ ephemeral: true });
+
+    try {
+        // Get form data
+        const name = interaction.fields.getTextInputValue('shop_name').trim();
+        const description = interaction.fields.getTextInputValue('shop_description').trim();
+        const prices = interaction.fields.getTextInputValue('shop_prices').trim();
+        const discord = interaction.fields.getTextInputValue('shop_discord').trim();
+        const link = interaction.fields.getTextInputValue('shop_link')?.trim() || '';
+
+        // Validate inputs
+        if (!name) {
+            return await interaction.editReply({ content: '❌ Shop name is required!' });
+        }
+
+        if (!description) {
+            return await interaction.editReply({ content: '❌ Description is required!' });
+        }
+
+        if (!prices) {
+            return await interaction.editReply({ content: '❌ Pricing information is required!' });
+        }
+
+        if (!discord) {
+            return await interaction.editReply({ content: '❌ Discord contact is required!' });
+        }
+
+        // Format website link if provided
+        const formattedLink = link ? formatWebsiteLink(link) : null;
+        if (link && !formattedLink) {
+            return await interaction.editReply({ content: '❌ Invalid website/payment link format!' });
+        }
+
+        // Get the forum channel
+        const forumChannelId = getForumChannelId('coinshop');
+        if (!forumChannelId) {
+            return await interaction.editReply({
+                content: '❌ Coin shop forum channel not configured!'
+            });
+        }
+
+        // Prepare shop data
+        const shopData = {
+            name,
+            description,
+            prices,
+            discord,
+            link: formattedLink,
+            type: 'coinshop',
+            submittedBy: interaction.user.tag
+        };
+
+        // Create the forum post
+        const thread = await createCoinShopForumPost(interaction.client, forumChannelId, shopData);
+
+        // Send success message
+        await interaction.editReply({
+            content: `✅ Successfully created coin shop listing for **${name}**!\n🔗 ${thread.url}`
+        });
+
+    } catch (error) {
+        console.error('Error handling coin shop form submission:', error);
+        await interaction.editReply({
+            content: '❌ An error occurred while creating the coin shop listing. Please try again later.'
+        });
+    }
+}
+
+/**
+ * Handles other items form submission from modal
+ * @param {import('discord.js').ModalSubmitInteraction} interaction
+ */
+async function handleOtherFormSubmission(interaction) {
+    await interaction.deferReply({ ephemeral: true });
+
+    try {
+        // Get form data
+        const name = interaction.fields.getTextInputValue('item_name').trim();
+        const category = interaction.fields.getTextInputValue('item_category').trim();
+        const description = interaction.fields.getTextInputValue('item_description').trim();
+        const price = interaction.fields.getTextInputValue('item_price').trim();
+        const contact = interaction.fields.getTextInputValue('item_contact').trim();
+
+        // Validate inputs
+        if (!name) {
+            return await interaction.editReply({ content: '❌ Item/service name is required!' });
+        }
+
+        if (!category) {
+            return await interaction.editReply({ content: '❌ Category is required!' });
+        }
+
+        if (!description) {
+            return await interaction.editReply({ content: '❌ Description is required!' });
+        }
+
+        if (!price) {
+            return await interaction.editReply({ content: '❌ Price information is required!' });
+        }
+
+        if (!contact) {
+            return await interaction.editReply({ content: '❌ Contact information is required!' });
+        }
+
+        // Get the forum channel
+        const forumChannelId = getForumChannelId('other');
+        if (!forumChannelId) {
+            return await interaction.editReply({
+                content: '❌ Other items forum channel not configured!'
+            });
+        }
+
+        // Prepare item data
+        const itemData = {
+            name,
+            category,
+            description,
+            price,
+            contact,
+            type: 'other',
+            submittedBy: interaction.user.tag
+        };
+
+        // Create the forum post
+        const thread = await createOtherForumPost(interaction.client, forumChannelId, itemData);
+
+        // Send success message
+        await interaction.editReply({
+            content: `✅ Successfully created listing for **${name}**!\n🔗 ${thread.url}`
+        });
+
+    } catch (error) {
+        console.error('Error handling other form submission:', error);
+        await interaction.editReply({
+            content: '❌ An error occurred while creating the listing. Please try again later.'
+        });
+    }
+}
+
 module.exports = {
-    handleClientFormSubmission
+    handleClientFormSubmission,
+    handleCoinShopFormSubmission,
+    handleOtherFormSubmission
 };

@@ -47,6 +47,9 @@ jspm_packages/
 *.swp
 *.swo
 
+# Data files (but keep structure)
+src/data/giveaways.json
+
 # OS generated files
 .DS_Store
 .DS_Store?

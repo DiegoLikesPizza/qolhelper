@@ -1,11 +1,24 @@
 const { SlashCommandBuilder, ModalBuilder, TextInputBuilder, TextInputStyle, ActionRowBuilder } = require('discord.js');
+const { hasClientListingPermission, getClientListingRoleName } = require('../utils/permissions');
 
 module.exports = {
     data: new SlashCommandBuilder()
         .setName('listlegit')
         .setDescription('Submit a legit client to be listed in the forum'),
-    
+
     async execute(interaction) {
+        // Check if user has the required role
+        if (!hasClientListingPermission(interaction.member)) {
+            const roleName = getClientListingRoleName(interaction.guild);
+            const roleMessage = roleName
+                ? `You need the **${roleName}** role to list clients.`
+                : 'You do not have permission to list clients.';
+
+            return await interaction.reply({
+                content: `❌ ${roleMessage}`,
+                ephemeral: true
+            });
+        }
         // Create the modal
         const modal = new ModalBuilder()
             .setCustomId('client_form_legit')

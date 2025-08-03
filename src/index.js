@@ -103,6 +103,12 @@ client.on('interactionCreate', async interaction => {
             } else if (interaction.customId === 'giveaway_form') {
                 const { handleGiveawayFormSubmission } = require('./handlers/giveawayHandler');
                 await handleGiveawayFormSubmission(interaction);
+            } else if (interaction.customId === 'coinshop_form') {
+                const { handleCoinShopFormSubmission } = require('./handlers/clientFormHandler');
+                await handleCoinShopFormSubmission(interaction);
+            } else if (interaction.customId === 'other_form') {
+                const { handleOtherFormSubmission } = require('./handlers/clientFormHandler');
+                await handleOtherFormSubmission(interaction);
             }
         } catch (error) {
             console.error('Error handling modal submission:', error);

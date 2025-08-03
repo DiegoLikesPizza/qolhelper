@@ -95,10 +95,13 @@ async function handleGiveawayFormSubmission(interaction) {
 
 /**
  * Handles giveaway button interactions
- * @param {import('discord.js').ButtonInteraction} interaction 
+ * @param {import('discord.js').ButtonInteraction} interaction
  */
 async function handleGiveawayButtonInteraction(interaction) {
-    const [action, giveawayId] = interaction.customId.split('_').slice(1); // Remove 'giveaway' prefix
+    // Custom ID format: giveaway_join_${giveawayId}
+    const parts = interaction.customId.split('_');
+    const action = parts[1]; // 'join'
+    const giveawayId = parts.slice(2).join('_'); // Everything after 'giveaway_join_'
 
     if (action === 'join') {
         await handleJoinGiveaway(interaction, giveawayId);

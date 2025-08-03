@@ -1,3 +1,40 @@
 {
-  "giveaways": {}
+  "giveaways": {
+    "gw_1754227080246_eoylisc4r": {
+      "id": "gw_1754227080246_eoylisc4r",
+      "title": "750 Members giveaway",
+      "description": "ty",
+      "prize": "$5",
+      "winnerCount": 1,
+      "duration": 1,
+      "requiredRoles": [],
+      "channelId": "1271248770016739352",
+      "messageId": "1401554710334537831",
+      "hostId": "696706677180989467",
+      "participants": [],
+      "status": "ended",
+      "createdAt": 1754227080246,
+      "endsAt": 1754227140246,
+      "winners": [],
+      "endedAt": 1754227140497
+    },
+    "gw_1754227268189_guwkgeobu": {
+      "id": "gw_1754227268189_guwkgeobu",
+      "title": "asd",
+      "description": "asd",
+      "prize": "$4",
+      "winnerCount": 1,
+      "duration": 1,
+      "requiredRoles": [],
+      "channelId": "1271248770016739352",
+      "messageId": "1401555498553180241",
+      "hostId": "696706677180989467",
+      "participants": [],
+      "status": "ended",
+      "createdAt": 1754227268189,
+      "endsAt": 1754227328189,
+      "winners": [],
+      "endedAt": 1754227328462
+    }
+  }
 }
