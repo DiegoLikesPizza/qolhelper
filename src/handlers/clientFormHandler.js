@@ -93,46 +93,31 @@ async function createForumPost(client, channelId, clientData) {
         throw new Error('Invalid forum channel');
     }
 
-    // Create the thread title with the format "[free/paid] name"
-    const priceTag = clientData.isFree ? 'FREE' : 'PAID';
-    const threadName = `[${priceTag}] ${clientData.name}`;
-
-    // Create the initial message content
-    let messageContent = `**${clientData.name}** - Minecraft ${clientData.version}\n\n`;
-    
-    if (clientData.discordInvite) {
-        messageContent += `🔗 **Discord Server:** ${clientData.discordInvite}\n`;
-    }
-    
-    if (clientData.websiteLink) {
-        messageContent += `🌐 **Website/GitHub:** ${clientData.websiteLink}\n`;
-    }
+    // Create the thread title with the price and name
+    const threadName = `[${clientData.price}] ${clientData.name}`;
 
     // Create an embed for better formatting
     const embed = new EmbedBuilder()
         .setTitle(`${clientData.name}`)
-        .setColor(clientData.isFree ? 0x00FF00 : 0xFF6B00) // Green for free, orange for paid
+        .setColor(0x5865F2) // Discord blurple color
         .addFields(
-            { name: 'Minecraft Version', value: clientData.version, inline: true },
-            { name: 'Price', value: clientData.isFree ? 'Free' : 'Paid', inline: true },
-            { name: 'Type', value: clientData.type.charAt(0).toUpperCase() + clientData.type.slice(1), inline: true }
+            { name: 'Price', value: clientData.price, inline: true }
         )
         .setTimestamp()
         .setFooter({ text: `Submitted by ${clientData.submittedBy}` });
 
-    if (clientData.discordInvite) {
-        embed.addFields({ name: 'Discord Server', value: clientData.discordInvite, inline: false });
+    if (clientData.description) {
+        embed.setDescription(clientData.description);
     }
 
-    if (clientData.websiteLink) {
-        embed.addFields({ name: 'Website/GitHub', value: clientData.websiteLink, inline: false });
+    if (clientData.discordInvite) {
+        embed.addFields({ name: 'Discord Server', value: clientData.discordInvite, inline: false });
     }
 
     // Create the forum post
     const thread = await channel.threads.create({
         name: threadName,
         message: {
-            content: messageContent,
             embeds: [embed]
         }
     });
@@ -157,16 +142,6 @@ async function createCoinShopForumPost(client, channelId, shopData) {
     // Create the thread title
     const threadName = `💰 ${shopData.name}`;
 
-    // Create the initial message content
-    let messageContent = `**${shopData.name}** - Coin Shop\n\n`;
-    messageContent += `📝 **Description:** ${shopData.description}\n\n`;
-    messageContent += `💵 **Pricing:**\n${shopData.prices}\n\n`;
-    messageContent += `💬 **Contact:** ${shopData.discord}\n`;
-
-    if (shopData.link) {
-        messageContent += `🌐 **Website/Payment:** ${shopData.link}\n`;
-    }
-
     // Create an embed for better formatting
     const embed = new EmbedBuilder()
         .setTitle(`💰 ${shopData.name}`)
@@ -174,8 +149,7 @@ async function createCoinShopForumPost(client, channelId, shopData) {
         .setDescription(shopData.description)
         .addFields(
             { name: '💵 Pricing', value: shopData.prices, inline: false },
-            { name: '💬 Contact', value: shopData.discord, inline: true },
-            { name: '📋 Type', value: 'Coin Shop', inline: true }
+            { name: '💬 Contact', value: shopData.discord, inline: true }
         )
         .setTimestamp()
         .setFooter({ text: `Submitted by ${shopData.submittedBy}` });
@@ -188,7 +162,6 @@ async function createCoinShopForumPost(client, channelId, shopData) {
     const thread = await channel.threads.create({
         name: threadName,
         message: {
-            content: messageContent,
             embeds: [embed]
         }
     });
@@ -213,12 +186,6 @@ async function createOtherForumPost(client, channelId, itemData) {
     // Create the thread title
     const threadName = `${itemData.category} - ${itemData.name}`;
 
-    // Create the initial message content
-    let messageContent = `**${itemData.name}** - ${itemData.category}\n\n`;
-    messageContent += `📝 **Description:** ${itemData.description}\n\n`;
-    messageContent += `💰 **Price:** ${itemData.price}\n\n`;
-    messageContent += `📞 **Contact:** ${itemData.contact}\n`;
-
     // Create an embed for better formatting
     const embed = new EmbedBuilder()
         .setTitle(`${itemData.name}`)
@@ -236,7 +203,6 @@ async function createOtherForumPost(client, channelId, itemData) {
     const thread = await channel.threads.create({
         name: threadName,
         message: {
-            content: messageContent,
             embeds: [embed]
         }
     });
@@ -258,9 +224,9 @@ async function handleClientFormSubmission(interaction) {
         // Get form data
         const name = interaction.fields.getTextInputValue('client_name').trim();
         const version = interaction.fields.getTextInputValue('client_version').trim();
-        const freeResponse = interaction.fields.getTextInputValue('client_free').trim().toLowerCase();
+        const price = interaction.fields.getTextInputValue('client_price').trim();
+        const description = interaction.fields.getTextInputValue('client_description')?.trim() || '';
         const discordInvite = interaction.fields.getTextInputValue('client_discord')?.trim() || '';
-        const websiteLink = interaction.fields.getTextInputValue('client_link')?.trim() || '';
 
         // Validate inputs
         if (!name) {
@@ -271,22 +237,15 @@ async function handleClientFormSubmission(interaction) {
             return await interaction.editReply({ content: '❌ Version must be either 1.8.9 or 1.21.5!' });
         }
 
-        if (!['yes', 'no', 'y', 'n'].includes(freeResponse)) {
-            return await interaction.editReply({ content: '❌ Please answer "yes" or "no" for the free question!' });
+        if (!price) {
+            return await interaction.editReply({ content: '❌ Price is required!' });
         }
 
-        const isFree = ['yes', 'y'].includes(freeResponse);
-
-        // Format and validate links
+        // Format and validate Discord invite
         const formattedDiscordInvite = discordInvite ? formatDiscordInvite(discordInvite) : null;
-        const formattedWebsiteLink = websiteLink ? formatWebsiteLink(websiteLink) : null;
 
         if (discordInvite && !formattedDiscordInvite) {
             return await interaction.editReply({ content: '❌ Invalid Discord invite format!' });
-        }
-
-        if (websiteLink && !formattedWebsiteLink) {
-            return await interaction.editReply({ content: '❌ Invalid website/GitHub link format!' });
         }
 
         // Get the appropriate forum channel based on type and version
@@ -301,10 +260,10 @@ async function handleClientFormSubmission(interaction) {
         const clientData = {
             name,
             version,
-            isFree,
+            price,
+            description,
             type: clientType,
             discordInvite: formattedDiscordInvite,
-            websiteLink: formattedWebsiteLink,
             submittedBy: interaction.user.tag
         };
 

@@ -41,13 +41,21 @@ module.exports = {
             .setRequired(true)
             .setMaxLength(10);
 
-        const freeInput = new TextInputBuilder()
-            .setCustomId('client_free')
-            .setLabel('Is it Free? (yes/no)')
+        const priceInput = new TextInputBuilder()
+            .setCustomId('client_price')
+            .setLabel('Price')
             .setStyle(TextInputStyle.Short)
-            .setPlaceholder('yes or no')
+            .setPlaceholder('Free, $10, €15, Contact for pricing, etc.')
             .setRequired(true)
-            .setMaxLength(3);
+            .setMaxLength(50);
+
+        const descriptionInput = new TextInputBuilder()
+            .setCustomId('client_description')
+            .setLabel('Description (Optional)')
+            .setStyle(TextInputStyle.Paragraph)
+            .setPlaceholder('Describe the client features, capabilities, etc.')
+            .setRequired(false)
+            .setMaxLength(1000);
 
         const discordInput = new TextInputBuilder()
             .setCustomId('client_discord')
@@ -57,20 +65,14 @@ module.exports = {
             .setRequired(false)
             .setMaxLength(200);
 
-        const linkInput = new TextInputBuilder()
-            .setCustomId('client_link')
-            .setLabel('Website/GitHub Link')
-            .setStyle(TextInputStyle.Short)
-            .setPlaceholder('https://github.com/example or https://website.com')
-            .setRequired(false)
-            .setMaxLength(200);
 
-        // Create action rows and add inputs
+
+        // Create action rows and add inputs (Discord allows max 5 action rows)
         const firstActionRow = new ActionRowBuilder().addComponents(nameInput);
         const secondActionRow = new ActionRowBuilder().addComponents(versionInput);
-        const thirdActionRow = new ActionRowBuilder().addComponents(freeInput);
-        const fourthActionRow = new ActionRowBuilder().addComponents(discordInput);
-        const fifthActionRow = new ActionRowBuilder().addComponents(linkInput);
+        const thirdActionRow = new ActionRowBuilder().addComponents(priceInput);
+        const fourthActionRow = new ActionRowBuilder().addComponents(descriptionInput);
+        const fifthActionRow = new ActionRowBuilder().addComponents(discordInput);
 
         // Add action rows to the modal
         modal.addComponents(firstActionRow, secondActionRow, thirdActionRow, fourthActionRow, fifthActionRow);

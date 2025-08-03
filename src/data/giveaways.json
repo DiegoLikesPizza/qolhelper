@@ -35,6 +35,29 @@
       "endsAt": 1754227328189,
       "winners": [],
       "endedAt": 1754227328462
+    },
+    "gw_1754227960547_6724vprge": {
+      "id": "gw_1754227960547_6724vprge",
+      "title": "test3",
+      "description": "test n3",
+      "prize": "$3",
+      "winnerCount": 1,
+      "duration": 1,
+      "requiredRoles": [],
+      "channelId": "1271248770016739352",
+      "messageId": "1401558403503095860",
+      "hostId": "696706677180989467",
+      "participants": [
+        "696706677180989467",
+        "1195128694520418364"
+      ],
+      "status": "ended",
+      "createdAt": 1754227960547,
+      "endsAt": 1754228020547,
+      "winners": [
+        "1195128694520418364"
+      ],
+      "endedAt": 1754228021001
     }
   }
 }
